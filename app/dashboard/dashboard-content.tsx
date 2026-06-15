@@ -9,19 +9,22 @@ import {
   Settings,
   User,
   Activity,
-  ShieldCheck,
-  Database,
-  Server,
-  RefreshCw,
-  Search,
+  Wrench,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp,
+  Users,
+  Calendar,
   Bell,
-  HardDrive,
-  Cpu,
-  Terminal,
-  FileCode,
-  ShieldAlert,
+  Search,
   ChevronRight,
-  Sparkles,
+  DollarSign,
+  MoreVertical,
+  MapPin,
+  Phone,
+  Plus,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -61,13 +64,152 @@ interface DashboardContentProps {
   };
 }
 
+// Stats Card Component
+function StatsCard({ 
+  title, 
+  value, 
+  icon: Icon, 
+  trend, 
+  trendLabel,
+  backgroundColor = "bg-blue-900/20" 
+}: { 
+  title: string; 
+  value: string | number; 
+  icon: React.ReactNode; 
+  trend?: number;
+  trendLabel?: string;
+  backgroundColor?: string;
+}) {
+  return (
+    <Card className="bg-slate-50 border-slate-200 hover:shadow-md transition-all">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-slate-600 text-sm font-medium">{title}</p>
+            <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
+            {trend !== undefined && (
+              <p className={`text-xs mt-2 ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% {trendLabel}
+              </p>
+            )}
+          </div>
+          <div className={`p-3 rounded-lg ${backgroundColor}`}>
+            {Icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Job Card Component
+function JobCard({ 
+  id, 
+  customerName, 
+  service, 
+  address, 
+  time, 
+  status,
+  priority = "normal"
+}: { 
+  id: string;
+  customerName: string; 
+  service: string; 
+  address: string; 
+  time: string;
+  status: 'pending' | 'in-progress' | 'completed';
+  priority?: 'high' | 'normal' | 'low';
+}) {
+  const statusColors = {
+    pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    'in-progress': 'bg-blue-100 text-blue-800 border-blue-300',
+    completed: 'bg-green-100 text-green-800 border-green-300',
+  };
+
+  const priorityColors = {
+    high: 'text-red-600',
+    normal: 'text-yellow-600',
+    low: 'text-green-600',
+  };
+
+  return (
+    <Card className="bg-white border-slate-200 hover:shadow-md transition-all cursor-pointer">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <h4 className="font-semibold text-slate-900">{customerName}</h4>
+            <p className="text-sm text-slate-600">{service}</p>
+          </div>
+          <span className={`px-2 py-1 rounded-md text-xs font-medium border ${statusColors[status]}`}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        </div>
+        <div className="space-y-2 mb-3">
+          <div className="flex items-center gap-2 text-sm text-slate-700">
+            <MapPin className="h-4 w-4 text-slate-500" />
+            {address}
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-700">
+            <Clock className="h-4 w-4 text-slate-500" />
+            {time}
+          </div>
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+          <span className={`text-xs font-medium ${priorityColors[priority]}`}>
+            {priority.charAt(0).toUpperCase() + priority.slice(1)} Priority
+          </span>
+          <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
+            View Details
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Sample mock data for demo purposes
+const mockUpcomingJobs = [
+  {
+    id: "JOB001",
+    customerName: "John Anderson",
+    service: "Pipe Repair & Replacement",
+    address: "123 Oak Street, Springfield",
+    time: "9:00 AM - 11:30 AM",
+    status: "pending" as const,
+    priority: "high" as const,
+  },
+  {
+    id: "JOB002",
+    customerName: "Sarah Mitchell",
+    service: "Water Heater Installation",
+    address: "456 Elm Avenue, Downtown",
+    time: "1:00 PM - 3:00 PM",
+    status: "pending" as const,
+    priority: "normal" as const,
+  },
+  {
+    id: "JOB003",
+    customerName: "Michael Chen",
+    service: "Drain Cleaning & Inspection",
+    address: "789 Pine Road, North Side",
+    time: "3:30 PM - 4:30 PM",
+    status: "pending" as const,
+    priority: "normal" as const,
+  },
+];
+
+const mockRecentActivity = [
+  { id: 1, action: "Job Completed", details: "Pipe repair at 123 Oak St completed by Mike Johnson", time: "2 hours ago", type: "completed" },
+  { id: 2, action: "Worker Assigned", details: "David Lee assigned to JOB003 - Drain Cleaning", time: "1 hour ago", type: "assigned" },
+  { id: 3, action: "Customer Booking", details: "New booking from Emily Rodriguez for plumbing inspection", time: "45 minutes ago", type: "booking" },
+  { id: 4, action: "Invoice Generated", details: "Invoice #INV-2026-0145 created for Sarah Mitchell", time: "30 minutes ago", type: "invoice" },
+  { id: 5, action: "System Alert", details: "3 jobs scheduled for tomorrow morning", time: "15 minutes ago", type: "alert" },
+];
+
 export function DashboardContent({ user }: DashboardContentProps) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "nodes" | "logs" | "settings">("overview");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [syncStatus, setSyncStatus] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"home" | "jobs" | "customers" | "team" | "reports" | "settings">("home");
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -86,102 +228,128 @@ export function DashboardContent({ user }: DashboardContentProps) {
     }
   };
 
-  const triggerNodeSync = () => {
-    setIsSyncing(true);
-    setSyncStatus("Initiating cluster sync...");
-    setTimeout(() => {
-      setSyncStatus("Sync completed. All database nodes online.");
-      setIsSyncing(false);
-      setTimeout(() => setSyncStatus(null), 3000);
-    }, 2000);
-  };
-
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-zinc-950 text-zinc-100 font-sans">
+        <div className="flex min-h-screen w-full bg-slate-50 text-slate-900 font-sans">
           
-          {/* Shadcn App Sidebar */}
-          <Sidebar 
-            style={{ "--sidebar": "#000000" } as React.CSSProperties}
-            className="border-r border-zinc-900 text-zinc-300"
-          >
-            <SidebarHeader className="border-b border-zinc-900 p-4 h-16 flex items-center">
+          {/* Admin Sidebar */}
+          <Sidebar className="border-r border-slate-200 bg-white">
+            <SidebarHeader className="border-b border-slate-200 p-4">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-md bg-zinc-900 border border-zinc-800 text-white">
-                  <Database className="h-4.5 w-4.5" />
+                <div className="p-2 rounded-lg bg-blue-600">
+                  <Wrench className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold tracking-tight text-white leading-none">Plumbflow</span>
-                  <span className="text-[10px] text-zinc-500 font-mono mt-0.5">console_v4.2</span>
+                  <span className="font-semibold text-slate-900">PlumbFlow</span>
+                  <span className="text-xs text-slate-500">Admin Dashboard</span>
                 </div>
               </div>
             </SidebarHeader>
 
             <SidebarContent className="p-2">
               <SidebarGroup>
-                <SidebarGroupLabel className="text-zinc-500 text-[10px] uppercase tracking-wider px-3 py-2">
-                  Navigation
+                <SidebarGroupLabel className="text-slate-500 text-xs uppercase tracking-wider px-3 py-2">
+                  Main Menu
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuItem>
                       <SidebarMenuButton
-                        isActive={activeTab === "overview"}
-                        onClick={() => setActiveTab("overview")}
+                        isActive={activeTab === "home"}
+                        onClick={() => setActiveTab("home")}
                         className={`w-full justify-start gap-3 px-3 py-2 rounded-md transition-colors ${
-                          activeTab === "overview"
-                            ? "bg-zinc-900 text-white font-medium border border-zinc-800"
-                            : "hover:bg-zinc-900/60 hover:text-zinc-100 text-zinc-400"
+                          activeTab === "home"
+                            ? "bg-blue-100 text-blue-700 font-medium"
+                            : "hover:bg-slate-100 text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         <LayoutDashboard className="h-4 w-4" />
-                        <span>Console Overview</span>
+                        <span>Dashboard</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
 
                     <SidebarMenuItem>
                       <SidebarMenuButton
-                        isActive={activeTab === "nodes"}
-                        onClick={() => setActiveTab("nodes")}
+                        isActive={activeTab === "jobs"}
+                        onClick={() => setActiveTab("jobs")}
                         className={`w-full justify-start gap-3 px-3 py-2 rounded-md transition-colors ${
-                          activeTab === "nodes"
-                            ? "bg-zinc-900 text-white font-medium border border-zinc-800"
-                            : "hover:bg-zinc-900/60 hover:text-zinc-100 text-zinc-400"
+                          activeTab === "jobs"
+                            ? "bg-blue-100 text-blue-700 font-medium"
+                            : "hover:bg-slate-100 text-slate-600 hover:text-slate-900"
                         }`}
                       >
-                        <Server className="h-4 w-4" />
-                        <span>Node Clusters</span>
+                        <Wrench className="h-4 w-4" />
+                        <span>Jobs</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
 
                     <SidebarMenuItem>
                       <SidebarMenuButton
-                        isActive={activeTab === "logs"}
-                        onClick={() => setActiveTab("logs")}
+                        isActive={activeTab === "customers"}
+                        onClick={() => setActiveTab("customers")}
                         className={`w-full justify-start gap-3 px-3 py-2 rounded-md transition-colors ${
-                          activeTab === "logs"
-                            ? "bg-zinc-900 text-white font-medium border border-zinc-800"
-                            : "hover:bg-zinc-900/60 hover:text-zinc-100 text-zinc-400"
+                          activeTab === "customers"
+                            ? "bg-blue-100 text-blue-700 font-medium"
+                            : "hover:bg-slate-100 text-slate-600 hover:text-slate-900"
                         }`}
                       >
-                        <ShieldCheck className="h-4 w-4" />
-                        <span>Audit & Security</span>
+                        <Users className="h-4 w-4" />
+                        <span>Customers</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
 
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        isActive={activeTab === "team"}
+                        onClick={() => setActiveTab("team")}
+                        className={`w-full justify-start gap-3 px-3 py-2 rounded-md transition-colors ${
+                          activeTab === "team"
+                            ? "bg-blue-100 text-blue-700 font-medium"
+                            : "hover:bg-slate-100 text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Team</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        isActive={activeTab === "reports"}
+                        onClick={() => setActiveTab("reports")}
+                        className={`w-full justify-start gap-3 px-3 py-2 rounded-md transition-colors ${
+                          activeTab === "reports"
+                            ? "bg-blue-100 text-blue-700 font-medium"
+                            : "hover:bg-slate-100 text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        <TrendingUp className="h-4 w-4" />
+                        <span>Reports</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-slate-500 text-xs uppercase tracking-wider px-3 py-2">
+                  Settings
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         isActive={activeTab === "settings"}
                         onClick={() => setActiveTab("settings")}
                         className={`w-full justify-start gap-3 px-3 py-2 rounded-md transition-colors ${
                           activeTab === "settings"
-                            ? "bg-zinc-900 text-white font-medium border border-zinc-800"
-                            : "hover:bg-zinc-900/60 hover:text-zinc-100 text-zinc-400"
+                            ? "bg-blue-100 text-blue-700 font-medium"
+                            : "hover:bg-slate-100 text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         <Settings className="h-4 w-4" />
-                        <span>System Settings</span>
+                        <span>Settings</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   </SidebarMenu>
@@ -189,489 +357,300 @@ export function DashboardContent({ user }: DashboardContentProps) {
               </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter className="border-t border-zinc-900 p-4">
-              <div className="flex items-center justify-between gap-2 p-1 bg-zinc-900/40 rounded-lg border border-zinc-900">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white text-xs font-semibold uppercase">
+            <SidebarFooter className="border-t border-slate-200 p-4">
+              <div className="p-3 bg-slate-100 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
                     {user.name ? user.name[0] : "A"}
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-medium text-white truncate">{user.name || "Admin"}</span>
-                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">
-                      {user.role || "Admin"}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-900 truncate">{user.name || "Admin"}</p>
+                    <p className="text-xs text-slate-500 truncate">{user.email}</p>
                   </div>
                 </div>
-              </div>
-            </SidebarFooter>
-          </Sidebar>
-
-          {/* Sidebar Inset Main Screen */}
-          <SidebarInset className="flex flex-col flex-1 bg-zinc-950 overflow-hidden">
-            {/* Nav Header */}
-            <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-zinc-900 px-6 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-50">
-              <div className="flex items-center gap-3">
-                <SidebarTrigger className="text-zinc-400 hover:text-white" />
-                <Separator orientation="vertical" className="h-4 bg-zinc-800" />
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-mono">
-                  <span>console</span>
-                  <ChevronRight className="h-3 w-3" />
-                  <span className="text-zinc-200 capitalize">{activeTab}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10px] text-emerald-400 font-mono">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                  </span>
-                  ACTIVE GUARD
-                </div>
-
                 <Button
                   variant="outline"
                   size="sm"
                   disabled={isSigningOut}
                   onClick={handleSignOut}
-                  className="border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white bg-zinc-900/50 hover:bg-zinc-900 h-8 flex items-center gap-2 transition-all text-xs"
+                  className="w-full border-slate-300 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 h-8 text-xs"
                 >
                   {isSigningOut ? (
-                    <RefreshCw className="h-3 w-3 animate-spin" />
+                    <RefreshCw className="h-3 w-3 animate-spin mr-2" />
                   ) : (
-                    <LogOut className="h-3 w-3" />
+                    <LogOut className="h-3 w-3 mr-2" />
                   )}
                   Sign Out
                 </Button>
               </div>
+            </SidebarFooter>
+          </Sidebar>
+
+          {/* Main Content Area */}
+          <SidebarInset className="flex flex-col flex-1 bg-slate-50 overflow-hidden">
+            {/* Top Navbar */}
+            <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-6 bg-white sticky top-0 z-40">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="text-slate-600 hover:text-slate-900" />
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {activeTab === "home" && "Dashboard"}
+                  {activeTab === "jobs" && "Jobs"}
+                  {activeTab === "customers" && "Customers"}
+                  {activeTab === "team" && "Team"}
+                  {activeTab === "reports" && "Reports"}
+                  {activeTab === "settings" && "Settings"}
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" className="text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                  <Bell className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </div>
             </header>
 
-            {/* Viewport Dashboard Content */}
-            <main className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Dashboard Content */}
+            <main className="flex-1 overflow-y-auto p-6">
               
-              {/* Tab: Overview */}
-              {activeTab === "overview" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
+              {/* HOME TAB - ADMIN DASHBOARD */}
+              {activeTab === "home" && (
+                <div className="space-y-6 animate-in fade-in">
                   
-                  {/* Page Title Header */}
-                  <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-white">Console Overview</h1>
-                    <p className="text-sm text-zinc-400 mt-1">
-                      Real-time node synchronization throughput and environment orchestrations.
-                    </p>
+                  {/* Welcome Header */}
+                  <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-lg p-8 text-white shadow-md">
+                    <h1 className="text-3xl font-bold">Welcome back, {user.name || "Admin"}! 👋</h1>
+                    <p className="mt-2 text-blue-100">Here's your business summary for today</p>
                   </div>
 
-                  {/* Synchronize Notification Alert */}
-                  {syncStatus && (
-                    <div className="p-3 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-zinc-400" />
-                      <span>{syncStatus}</span>
-                    </div>
-                  )}
-
-                  {/* 4 Grid Cards Metrics */}
+                  {/* Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="bg-zinc-900/40 border-zinc-800/80 shadow-md">
-                      <CardContent className="p-5 flex items-center justify-between">
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">System Integrity</span>
-                          <span className="text-xl font-semibold tracking-tight text-white block">99.98%</span>
-                        </div>
-                        <div className="p-2.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">
-                          <Activity className="h-5 w-5" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-zinc-900/40 border-zinc-800/80 shadow-md">
-                      <CardContent className="p-5 flex items-center justify-between">
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">Access Control</span>
-                          <span className="text-xl font-semibold tracking-tight text-white block">3 Active</span>
-                        </div>
-                        <div className="p-2.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">
-                          <User className="h-5 w-5" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-zinc-900/40 border-zinc-800/80 shadow-md">
-                      <CardContent className="p-5 flex items-center justify-between">
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">Active Nodes</span>
-                          <span className="text-xl font-semibold tracking-tight text-white block">4 Online</span>
-                        </div>
-                        <div className="p-2.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">
-                          <Server className="h-5 w-5" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-zinc-900/40 border-zinc-800/80 shadow-md">
-                      <CardContent className="p-5 flex items-center justify-between">
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">DB Sync Throughput</span>
-                          <span className="text-xl font-semibold tracking-tight text-white block">14.2k ops/s</span>
-                        </div>
-                        <div className="p-2.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">
-                          <Database className="h-5 w-5" />
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <StatsCard 
+                      title="Today's Jobs"
+                      value="8"
+                      icon={<Wrench className="h-5 w-5 text-blue-500" />}
+                      trend={12}
+                      trendLabel="vs yesterday"
+                      backgroundColor="bg-blue-100"
+                    />
+                    <StatsCard 
+                      title="Pending Jobs"
+                      value="3"
+                      icon={<AlertCircle className="h-5 w-5 text-yellow-500" />}
+                      trend={-5}
+                      trendLabel="vs yesterday"
+                      backgroundColor="bg-yellow-100"
+                    />
+                    <StatsCard 
+                      title="Completed Today"
+                      value="5"
+                      icon={<CheckCircle className="h-5 w-5 text-green-500" />}
+                      trend={8}
+                      trendLabel="vs yesterday"
+                      backgroundColor="bg-green-100"
+                    />
+                    <StatsCard 
+                      title="Today's Revenue"
+                      value="$2,450"
+                      icon={<DollarSign className="h-5 w-5 text-emerald-500" />}
+                      trend={15}
+                      trendLabel="vs yesterday"
+                      backgroundColor="bg-emerald-100"
+                    />
                   </div>
 
-                  {/* 2-Column Section: Telemetry Graph & Node Status */}
+                  {/* Main Content Grid */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
-                    {/* SVG Telemetry Chart */}
-                    <Card className="lg:col-span-2 bg-zinc-900/20 border-zinc-800 shadow-md">
-                      <CardHeader className="border-b border-zinc-900 pb-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-md font-semibold text-white">Database Sync Telemetry</CardTitle>
-                            <CardDescription className="text-xs text-zinc-500 mt-0.5">Real-time data replication traffic logs (last 24h)</CardDescription>
+                    {/* Upcoming Jobs - 2 columns */}
+                    <div className="lg:col-span-2">
+                      <Card className="border-slate-200 bg-white shadow-sm">
+                        <CardHeader className="border-b border-slate-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-slate-900">Upcoming Jobs</CardTitle>
+                              <CardDescription className="text-slate-500 mt-1">
+                                Jobs scheduled for today
+                              </CardDescription>
+                            </div>
+                            <Button variant="outline" size="sm" className="border-slate-300 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                              View All
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
                           </div>
-                          <Button
-                            onClick={triggerNodeSync}
-                            disabled={isSyncing}
-                            className="bg-white hover:bg-zinc-200 text-zinc-950 font-medium text-xs px-3 h-8 flex items-center gap-1.5 transition-all"
-                          >
-                            <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin" : ""}`} />
-                            Sync Cluster
+                        </CardHeader>
+                        <CardContent className="p-6">
+                          <div className="space-y-4">
+                            {mockUpcomingJobs.map((job) => (
+                              <JobCard key={job.id} {...job} />
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="space-y-4">
+                      <Card className="border-slate-200 bg-white shadow-sm">
+                        <CardHeader>
+                          <CardTitle className="text-slate-900 text-base">Quick Actions</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start">
+                            <Plus className="h-4 w-4 mr-2" />
+                            New Job
                           </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                        <div className="relative w-full h-[240px]">
-                          {/* SVG Telemetry Graph */}
-                          <svg viewBox="0 0 500 200" className="w-full h-full text-zinc-700 overflow-visible" preserveAspectRatio="none">
-                            <defs>
-                              <linearGradient id="glowGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.12" />
-                                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                              </linearGradient>
-                            </defs>
-                            
-                            {/* Grid Lines */}
-                            <line x1="0" y1="40" x2="500" y2="40" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-                            <line x1="0" y1="90" x2="500" y2="90" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-                            <line x1="0" y1="140" x2="500" y2="140" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-                            <line x1="0" y1="190" x2="500" y2="190" stroke="rgba(255,255,255,0.06)" />
+                          <Button variant="outline" className="w-full border-slate-300 justify-start text-slate-600 hover:text-slate-900">
+                            <Users className="h-4 w-4 mr-2" />
+                            Add Customer
+                          </Button>
+                          <Button variant="outline" className="w-full border-slate-300 justify-start text-slate-600 hover:text-slate-900">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            View Calendar
+                          </Button>
+                        </CardContent>
+                      </Card>
 
-                            {/* Gradient Area Fill */}
-                            <path
-                              d="M 0 190 Q 50 140 100 120 T 200 70 T 300 110 T 400 60 T 500 40 L 500 190 Z"
-                              fill="url(#glowGradient)"
-                            />
-
-                            {/* White Plot Line */}
-                            <path
-                              d="M 0 190 Q 50 140 100 120 T 200 70 T 300 110 T 400 60 T 500 40"
-                              fill="none"
-                              stroke="rgba(255,255,255,0.85)"
-                              strokeWidth="2.5"
-                            />
-
-                            {/* Hover Active Markers */}
-                            <circle cx="200" cy="70" r="5" fill="#ffffff" stroke="rgba(0,0,0,0.8)" strokeWidth="2" />
-                            <circle cx="400" cy="60" r="5" fill="#ffffff" stroke="rgba(0,0,0,0.8)" strokeWidth="2" />
-                            
-                            {/* Legend Labels */}
-                            <text x="5" y="32" fill="rgba(255,255,255,0.3)" fontSize="8" fontFamily="monospace">Peak: 14.8k ops</text>
-                          </svg>
-                          
-                          {/* Live Graph Badge */}
-                          <div className="absolute top-4 right-4 flex items-center gap-1.5 text-[9px] font-mono text-zinc-500 px-2 py-0.5 bg-zinc-900 border border-zinc-800 rounded">
-                            <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                            LIVE FEEDS
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 border-t border-zinc-900 pt-4 mt-2">
-                          <span>00:00 AM</span>
-                          <span>06:00 AM</span>
-                          <span>12:00 PM</span>
-                          <span>06:00 PM</span>
-                          <span>11:59 PM</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Quick Stats Panel */}
-                    <Card className="bg-zinc-900/20 border-zinc-800 shadow-md">
-                      <CardHeader className="border-b border-zinc-900 pb-4">
-                        <CardTitle className="text-md font-semibold text-white">Cluster Health</CardTitle>
-                        <CardDescription className="text-xs text-zinc-500 mt-0.5">Database node resources</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-6 space-y-4">
-                        
-                        {/* CPU Bar */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-zinc-400 flex items-center gap-1.5">
-                              <Cpu className="h-3.5 w-3.5 text-zinc-500" />
-                              CPU Utilization
-                            </span>
-                            <span className="font-mono text-zinc-200">18.4%</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
-                            <div className="h-full bg-white rounded-full" style={{ width: "18.4%" }} />
-                          </div>
-                        </div>
-
-                        {/* Memory Bar */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-zinc-400 flex items-center gap-1.5">
-                              <HardDrive className="h-3.5 w-3.5 text-zinc-500" />
-                              Memory Allocation
-                            </span>
-                            <span className="font-mono text-zinc-200">42.1%</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
-                            <div className="h-full bg-white rounded-full" style={{ width: "42.1%" }} />
-                          </div>
-                        </div>
-
-                        {/* Node status indicators */}
-                        <div className="pt-4 border-t border-zinc-900 space-y-2.5 text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="text-zinc-500">primary-node-us</span>
-                            <span className="text-[10px] font-mono bg-zinc-900 border border-zinc-800 text-white px-2 py-0.5 rounded">ONLINE</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-zinc-500">replica-node-eu</span>
-                            <span className="text-[10px] font-mono bg-zinc-900 border border-zinc-800 text-white px-2 py-0.5 rounded">ONLINE</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-zinc-500">replica-node-ap</span>
-                            <span className="text-[10px] font-mono bg-zinc-900 border border-zinc-800 text-white px-2 py-0.5 rounded">ONLINE</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      <Card className="bg-linear-to-br from-blue-50 to-indigo-50 shadow-sm border-blue-200">
+                        <CardContent className="p-4">
+                          <p className="text-sm font-medium text-slate-900 mb-2">Active Workers</p>
+                          <p className="text-2xl font-bold text-blue-600">12</p>
+                          <p className="text-xs text-slate-500 mt-1">On active jobs</p>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
 
-                  {/* Recent Logs Table */}
-                  <Card className="bg-zinc-900/20 border-zinc-800 shadow-md">
-                    <CardHeader className="border-b border-zinc-900 pb-4">
+                  {/* Recent Activity */}
+                  <Card className="border-slate-200 bg-white shadow-sm">
+                    <CardHeader className="border-b border-slate-200">
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className="text-md font-semibold text-white">Recent Security Logs</CardTitle>
-                          <CardDescription className="text-xs text-zinc-500 mt-0.5">Audit trail of system modifications and access requests.</CardDescription>
+                          <CardTitle className="text-slate-900">Recent Activity</CardTitle>
+                          <CardDescription className="text-slate-500 mt-1">
+                            Latest actions from your business
+                          </CardDescription>
                         </div>
-                        <Button
-                          variant="ghost"
-                          onClick={() => setActiveTab("logs")}
-                          className="text-xs text-zinc-400 hover:text-white"
-                        >
-                          View All Audit Logs
-                        </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0 px-0">
-                      <Table>
-                        <TableHeader className="border-b border-zinc-900">
-                          <TableRow className="border-b border-zinc-900">
-                            <TableHead className="text-zinc-400 text-xs px-6 font-medium">Timestamp</TableHead>
-                            <TableHead className="text-zinc-400 text-xs font-medium">Operator</TableHead>
-                            <TableHead className="text-zinc-400 text-xs font-medium">Event Code</TableHead>
-                            <TableHead className="text-zinc-400 text-xs font-medium">Target Node</TableHead>
-                            <TableHead className="text-zinc-400 text-xs text-right px-6 font-medium">Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow className="border-b border-zinc-900 hover:bg-zinc-900/20">
-                            <TableCell className="font-mono text-zinc-500 text-xs px-6">13:30:12</TableCell>
-                            <TableCell className="text-zinc-300 font-medium text-xs">{user.email}</TableCell>
-                            <TableCell className="text-zinc-400 font-mono text-xs">console_session_init</TableCell>
-                            <TableCell className="text-zinc-500 text-xs">local_client</TableCell>
-                            <TableCell className="text-right px-6 text-xs text-emerald-400">Success</TableCell>
-                          </TableRow>
-                          <TableRow className="border-b border-zinc-900 hover:bg-zinc-900/20">
-                            <TableCell className="font-mono text-zinc-500 text-xs px-6">13:12:04</TableCell>
-                            <TableCell className="text-zinc-300 font-medium text-xs">node_daemon</TableCell>
-                            <TableCell className="text-zinc-400 font-mono text-xs">db_replicate_users</TableCell>
-                            <TableCell className="text-zinc-500 text-xs">replica-node-eu</TableCell>
-                            <TableCell className="text-right px-6 text-xs text-emerald-400">Success</TableCell>
-                          </TableRow>
-                          <TableRow className="border-b border-zinc-900 hover:bg-zinc-900/20">
-                            <TableCell className="font-mono text-zinc-500 text-xs px-6">12:54:19</TableCell>
-                            <TableCell className="text-zinc-300 font-medium text-xs">cron_scheduler</TableCell>
-                            <TableCell className="text-zinc-400 font-mono text-xs">backup_snapshot_full</TableCell>
-                            <TableCell className="text-zinc-500 text-xs">replica-node-ap</TableCell>
-                            <TableCell className="text-right px-6 text-xs text-emerald-400">Success</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        {mockRecentActivity.map((activity) => (
+                          <div key={activity.id} className="flex gap-4 pb-4 border-b border-slate-200 last:border-0 last:pb-0">
+                            <div className="shrink-0 pt-1">
+                              <div className="h-2 w-2 rounded-full bg-blue-600 mt-1.5"></div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-900">{activity.action}</p>
+                              <p className="text-sm text-slate-600 mt-0.5">{activity.details}</p>
+                              <p className="text-xs text-slate-500 mt-1">{activity.time}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+              )}
+
+              {/* JOBS TAB */}
+              {activeTab === "jobs" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <Card className="border-slate-200 bg-white shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-slate-900">All Jobs</CardTitle>
+                      <CardDescription className="text-slate-500">Manage and track all plumbing jobs</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {mockUpcomingJobs.map((job) => (
+                          <JobCard key={job.id} {...job} />
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
               )}
 
-              {/* Tab: Node Clusters */}
-              {activeTab === "nodes" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-white">Cluster Nodes</h1>
-                    <p className="text-sm text-zinc-400 mt-1">
-                      Operational latency, heartbeats, and synchronization states across nodes.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="bg-zinc-900/20 border-zinc-800">
-                      <CardHeader className="pb-2 border-b border-zinc-900">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs text-white">primary-node-us</span>
-                          <span className="px-2 py-0.5 rounded bg-zinc-900 text-white text-[10px] font-mono border border-zinc-800">ONLINE</span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-4 space-y-3 text-xs">
-                        <div className="flex justify-between"><span className="text-zinc-500">IP Address:</span><span className="font-mono text-zinc-300">10.0.1.4</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Latency:</span><span className="font-mono text-zinc-300">12ms</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Synchronized:</span><span className="font-mono text-zinc-300">100%</span></div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-zinc-900/20 border-zinc-800">
-                      <CardHeader className="pb-2 border-b border-zinc-900">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs text-white">replica-node-eu</span>
-                          <span className="px-2 py-0.5 rounded bg-zinc-900 text-white text-[10px] font-mono border border-zinc-800">ONLINE</span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-4 space-y-3 text-xs">
-                        <div className="flex justify-between"><span className="text-zinc-500">IP Address:</span><span className="font-mono text-zinc-300">10.0.2.8</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Latency:</span><span className="font-mono text-zinc-300">84ms</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Synchronized:</span><span className="font-mono text-zinc-300">100%</span></div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-zinc-900/20 border-zinc-800">
-                      <CardHeader className="pb-2 border-b border-zinc-900">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs text-white">replica-node-ap</span>
-                          <span className="px-2 py-0.5 rounded bg-zinc-900 text-white text-[10px] font-mono border border-zinc-800">ONLINE</span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-4 space-y-3 text-xs">
-                        <div className="flex justify-between"><span className="text-zinc-500">IP Address:</span><span className="font-mono text-zinc-300">10.0.3.15</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Latency:</span><span className="font-mono text-zinc-300">194ms</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Synchronized:</span><span className="font-mono text-zinc-300">100%</span></div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab: Logs */}
-              {activeTab === "logs" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-white">Audit & Security Logs</h1>
-                    <p className="text-sm text-zinc-400 mt-1">
-                      System authentication records, access logs, and environmental changes.
-                    </p>
-                  </div>
-
-                  <Card className="bg-zinc-900/20 border-zinc-800 shadow-md">
-                    <CardHeader className="pb-4 border-b border-zinc-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="relative w-full sm:max-w-xs">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-500" />
-                        <Input
-                          placeholder="Search event logs..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-10 bg-zinc-900/50 border-zinc-800 text-white text-xs h-10 placeholder:text-zinc-600 focus-visible:ring-zinc-400"
-                        />
-                      </div>
+              {/* CUSTOMERS TAB */}
+              {activeTab === "customers" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <Card className="border-slate-200 bg-white shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-slate-900">Customers</CardTitle>
+                      <CardDescription className="text-slate-500">Manage your customer database</CardDescription>
                     </CardHeader>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader className="border-b border-zinc-900">
-                          <TableRow className="border-b border-zinc-900">
-                            <TableHead className="px-6 text-zinc-400 text-xs font-medium">Timestamp</TableHead>
-                            <TableHead className="text-zinc-400 text-xs font-medium">User</TableHead>
-                            <TableHead className="text-zinc-400 text-xs font-medium">Event Code</TableHead>
-                            <TableHead className="text-zinc-400 text-xs font-medium">IP Address</TableHead>
-                            <TableHead className="text-zinc-400 text-xs text-right px-6 font-medium">State</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow className="border-b border-zinc-900 hover:bg-zinc-900/10">
-                            <TableCell className="font-mono text-zinc-500 text-xs px-6">2026-06-04 13:30:12</TableCell>
-                            <TableCell className="text-zinc-300 font-medium text-xs">{user.email}</TableCell>
-                            <TableCell className="text-zinc-400 font-mono text-xs">console_session_init</TableCell>
-                            <TableCell className="text-zinc-500 text-xs font-mono">192.168.1.45</TableCell>
-                            <TableCell className="text-right px-6 text-xs text-emerald-400 font-mono">OK</TableCell>
-                          </TableRow>
-                          <TableRow className="border-b border-zinc-900 hover:bg-zinc-900/10">
-                            <TableCell className="font-mono text-zinc-500 text-xs px-6">2026-06-04 13:12:04</TableCell>
-                            <TableCell className="text-zinc-300 font-medium text-xs">node_daemon</TableCell>
-                            <TableCell className="text-zinc-400 font-mono text-xs">db_replicate_users</TableCell>
-                            <TableCell className="text-zinc-500 text-xs font-mono">10.0.2.8</TableCell>
-                            <TableCell className="text-right px-6 text-xs text-emerald-400 font-mono">OK</TableCell>
-                          </TableRow>
-                          <TableRow className="border-b border-zinc-900 hover:bg-zinc-900/10">
-                            <TableCell className="font-mono text-zinc-500 text-xs px-6">2026-06-04 12:54:19</TableCell>
-                            <TableCell className="text-zinc-300 font-medium text-xs">cron_scheduler</TableCell>
-                            <TableCell className="text-zinc-400 font-mono text-xs">backup_snapshot_full</TableCell>
-                            <TableCell className="text-zinc-500 text-xs font-mono">10.0.3.15</TableCell>
-                            <TableCell className="text-right px-6 text-xs text-emerald-400 font-mono">OK</TableCell>
-                          </TableRow>
-                          <TableRow className="border-b border-zinc-900 hover:bg-zinc-900/10">
-                            <TableCell className="font-mono text-zinc-500 text-xs px-6">2026-06-04 12:45:00</TableCell>
-                            <TableCell className="text-zinc-300 font-medium text-xs">security_agent</TableCell>
-                            <TableCell className="text-zinc-400 font-mono text-xs">vulnerability_scan_cron</TableCell>
-                            <TableCell className="text-zinc-500 text-xs font-mono">10.0.1.4</TableCell>
-                            <TableCell className="text-right px-6 text-xs text-emerald-400 font-mono">PASSED</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                    <CardContent>
+                      <p className="text-slate-600">Customer management interface coming soon...</p>
                     </CardContent>
                   </Card>
                 </div>
               )}
 
-              {/* Tab: Settings */}
+              {/* TEAM TAB */}
+              {activeTab === "team" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <Card className="border-slate-200 bg-white shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-slate-900">Team Members</CardTitle>
+                      <CardDescription className="text-slate-500">Manage your plumbing team</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-slate-600">Team management interface coming soon...</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* REPORTS TAB */}
+              {activeTab === "reports" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <Card className="border-slate-200 bg-white shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-slate-900">Reports</CardTitle>
+                      <CardDescription className="text-slate-500">View business analytics and reports</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-slate-600">Reports dashboard coming soon...</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* SETTINGS TAB */}
               {activeTab === "settings" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-white">System Settings</h1>
-                    <p className="text-sm text-zinc-400 mt-1">
-                      Configure your Plumbflow administrative dashboard controls.
-                    </p>
-                  </div>
-
-                  <Card className="bg-zinc-900/20 border-zinc-800 max-w-xl">
-                    <CardHeader className="border-b border-zinc-900 pb-4">
-                      <CardTitle className="text-md font-semibold text-white">General Configuration</CardTitle>
-                      <CardDescription className="text-xs text-zinc-500 mt-0.5">Configure authentication guards and node thresholds.</CardDescription>
+                <div className="space-y-6 animate-in fade-in">
+                  <Card className="border-slate-200 bg-white shadow-sm max-w-2xl">
+                    <CardHeader className="border-b border-slate-200">
+                      <CardTitle className="text-slate-900">System Settings</CardTitle>
+                      <CardDescription className="text-slate-500">Configure your dashboard preferences</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6 space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="admin_email" className="text-zinc-300">Administrator Contact Email</Label>
+                        <Label htmlFor="company_email" className="text-slate-900">Company Email</Label>
                         <Input
-                          id="admin_email"
+                          id="company_email"
                           defaultValue={user.email}
                           disabled
-                          className="bg-zinc-900/50 border-zinc-800 text-white text-xs h-10 placeholder:text-zinc-650 focus-visible:ring-zinc-400"
+                          className="bg-slate-100 border-slate-200 text-slate-900"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="sync_interval" className="text-zinc-300">Default Re-Sync Interval (seconds)</Label>
+                        <Label htmlFor="admin_name" className="text-slate-900">Admin Name</Label>
                         <Input
-                          id="sync_interval"
-                          type="number"
-                          defaultValue="300"
-                          className="bg-zinc-900/50 border-zinc-800 text-white text-xs h-10 placeholder:text-zinc-650 focus-visible:ring-zinc-400"
+                          id="admin_name"
+                          defaultValue={user.name}
+                          disabled
+                          className="bg-slate-100 border-slate-200 text-slate-900"
                         />
                       </div>
 
-                      <Button className="bg-white hover:bg-zinc-200 text-zinc-950 font-semibold h-10 px-5 text-xs transition-all duration-200 mt-4">
-                        Save System Configuration
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                        Save Settings
                       </Button>
                     </CardContent>
                   </Card>
